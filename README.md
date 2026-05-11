@@ -20,13 +20,34 @@ The app listens on:
 
 In Development, the OpenAPI document is served at `/openapi/v1.json`.
 
-Try the sample endpoint:
+## Authentication
+
+The API uses JWT bearer authentication. `POST /auth/login` issues a token, and `[Authorize]` endpoints (e.g. `/weatherforecast`) require it.
 
 ```bash
-curl http://localhost:5270/weatherforecast
+# 1. Get a token (demo credentials).
+TOKEN=$(curl -s -X POST http://localhost:5270/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demo","password":"password"}' | jq -r .accessToken)
+
+# 2. Call a protected endpoint.
+curl http://localhost:5270/weatherforecast -H "Authorization: Bearer $TOKEN"
 ```
 
-Or open [`src/Vibe.AspNetCore/Vibe.AspNetCore.http`](src/Vibe.AspNetCore/Vibe.AspNetCore.http) in an editor with REST-client support and send the request from there.
+Without the bearer header, protected endpoints return `401 Unauthorized`.
+
+JWT settings live under the `Jwt` configuration section:
+
+| Key | Description |
+| --- | --- |
+| `Jwt:Issuer` | Token issuer (`iss`). |
+| `Jwt:Audience` | Token audience (`aud`). |
+| `Jwt:Key` | Symmetric signing key. **Required.** Keep out of source control — use user-secrets, `Jwt__Key` env var, or a key vault. |
+| `Jwt:ExpiresMinutes` | Token lifetime in minutes (default `60`). |
+
+`appsettings.Development.json` ships a placeholder dev key so the app boots locally; the demo credentials (`demo` / `password`) in `AuthController` are placeholders — replace them with a real user store before shipping.
+
+Or open [`src/Vibe.AspNetCore/Vibe.AspNetCore.http`](src/Vibe.AspNetCore/Vibe.AspNetCore.http) in an editor with REST-client support: run the login request, paste the returned `accessToken` into the `@token` variable, and send the weather request.
 
 ## Common commands
 
@@ -42,10 +63,11 @@ Or open [`src/Vibe.AspNetCore/Vibe.AspNetCore.http`](src/Vibe.AspNetCore/Vibe.As
 ```
 vibe.sln
 └── src/
-    └── Vibe.AspNetCore/      # ASP.NET Core Web API (controllers + OpenAPI)
-        ├── Controllers/
+    └── Vibe.AspNetCore/      # ASP.NET Core Web API (controllers + OpenAPI + JWT)
+        ├── Authentication/   # JwtOptions
+        ├── Controllers/      # AuthController, WeatherForecastController
         ├── Program.cs
         └── Vibe.AspNetCore.csproj
 ```
 
-`Program.cs` uses minimal hosting with attribute-routed controllers and `Microsoft.AspNetCore.OpenApi`. The `WeatherForecast` controller and model are template scaffolding — replace them with real endpoints.
+`Program.cs` uses minimal hosting with attribute-routed controllers, `Microsoft.AspNetCore.OpenApi`, and JWT bearer authentication. The `WeatherForecast` controller and model are template scaffolding — replace them with real endpoints.

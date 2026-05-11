@@ -1,6 +1,20 @@
 @Vibe.AspNetCore_HostAddress = http://localhost:5270
 
+# 1. Login to get a JWT. Copy the accessToken from the response into @token below.
+POST {{Vibe.AspNetCore_HostAddress}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "demo",
+  "password": "password"
+}
+
+###
+
+@token = paste-access-token-here
+
 GET {{Vibe.AspNetCore_HostAddress}}/weatherforecast/
 Accept: application/json
+Authorization: Bearer {{token}}
 
 ###
