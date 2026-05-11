@@ -18,7 +18,12 @@ The app listens on:
 - HTTP — `http://localhost:5270`
 - HTTPS — `https://localhost:7198` (use `--launch-profile https`)
 
-In Development, the OpenAPI document is served at `/openapi/v1.json`.
+In Development:
+
+- OpenAPI document: [`/openapi/v1.json`](http://localhost:5270/openapi/v1.json)
+- Swagger UI: [`/swagger`](http://localhost:5270/swagger) — use the **Authorize** button with the JWT from `/auth/login` to call protected endpoints.
+
+Both are gated to `IsDevelopment()` and won't be exposed in Production.
 
 ## Authentication
 
@@ -47,6 +52,8 @@ JWT settings live under the `Jwt` configuration section:
 
 `appsettings.Development.json` ships a placeholder dev key so the app boots locally; the demo credentials (`demo` / `password`) in `AuthController` are placeholders — replace them with a real user store before shipping.
 
+Or use Swagger UI at [`/swagger`](http://localhost:5270/swagger): expand `POST /auth/login`, send the demo credentials, copy the `accessToken` from the response, click **Authorize**, paste the token, and re-run protected endpoints from the browser.
+
 Or open [`src/Vibe.AspNetCore/Vibe.AspNetCore.http`](src/Vibe.AspNetCore/Vibe.AspNetCore.http) in an editor with REST-client support: run the login request, paste the returned `accessToken` into the `@token` variable, and send the weather request.
 
 ## Common commands
@@ -66,8 +73,9 @@ vibe.sln
     └── Vibe.AspNetCore/      # ASP.NET Core Web API (controllers + OpenAPI + JWT)
         ├── Authentication/   # JwtOptions
         ├── Controllers/      # AuthController, WeatherForecastController
+        ├── OpenApi/          # Bearer security scheme + per-operation requirement transformers
         ├── Program.cs
         └── Vibe.AspNetCore.csproj
 ```
 
-`Program.cs` uses minimal hosting with attribute-routed controllers, `Microsoft.AspNetCore.OpenApi`, and JWT bearer authentication. The `WeatherForecast` controller and model are template scaffolding — replace them with real endpoints.
+`Program.cs` uses minimal hosting with attribute-routed controllers, `Microsoft.AspNetCore.OpenApi` (with `Swashbuckle.AspNetCore.SwaggerUI` on top of it for the Swagger UI page), and JWT bearer authentication. The `WeatherForecast` controller and model are template scaffolding — replace them with real endpoints.

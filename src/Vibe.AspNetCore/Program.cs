@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Vibe.AspNetCore.Authentication;
+using Vibe.AspNetCore.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    options.AddOperationTransformer<AuthorizeOperationTransformer>();
+});
 
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
 var jwtOptions = jwtSection.Get<JwtOptions>()
@@ -47,6 +52,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "Vibe API v1");
+        options.DocumentTitle = "Vibe API";
+    });
 }
 
 app.UseHttpsRedirection();
