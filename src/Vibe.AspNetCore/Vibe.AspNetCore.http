@@ -18,3 +18,9 @@ Accept: application/json
 Authorization: Bearer {{token}}
 
 ###
+
+GET {{Vibe.AspNetCore_HostAddress}}/auth/me
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###
